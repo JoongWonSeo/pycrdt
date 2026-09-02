@@ -1,5 +1,12 @@
 # Version history
 
+## Unreleased
+
+- Add exact `Text`/`Array` owner validation with `StickyIndex.resolve()` and reject a mismatched
+  owner in sequence-backed `get_index()` calls.
+- Return Python `ValueError`/`None` outcomes for malformed or unresolvable sticky indices instead
+  of propagating Rust panics.
+
 ## 0.13.1
 
 - Add `insert_xmltext_prelim` and `insert_xmlelement_prelim` to `XmlText`.
