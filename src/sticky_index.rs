@@ -26,6 +26,17 @@ impl SequenceOwner for ArrayRef {
     }
 }
 
+fn offset_index(sticky_index: &_StickyIndex, offset: &Offset) -> u32 {
+    // Yrs 0.26 resolves both associations of a nested type sentinel to zero.
+    // Assoc::After denotes the end of that exact owner (fixed in Yrs 0.27),
+    // while relative positions such as an ordinary index zero are unaffected.
+    if sticky_index.is_nested() && sticky_index.assoc == Assoc::After {
+        offset.branch.content_len
+    } else {
+        offset.index
+    }
+}
+
 fn resolve_offset<T, S>(sticky_index: &_StickyIndex, txn: &T, sequence: &S) -> Option<u32>
 where
     T: ReadTxn,
@@ -35,7 +46,7 @@ where
     if offset.branch.is_deleted() || !sequence.owns(&offset) {
         None
     } else {
-        Some(offset.index)
+        Some(offset_index(sticky_index, &offset))
     }
 }
 
@@ -97,7 +108,7 @@ impl StickyIndex {
         Ok(self
             .sticky_index
             .get_offset(transaction.as_ref())
-            .map(|offset| offset.index))
+            .map(|offset| offset_index(&self.sticky_index, &offset)))
     }
 
     pub fn resolve(
